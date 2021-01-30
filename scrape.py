@@ -346,6 +346,27 @@ def book_scrape(url, metadata_dict, progress_dict, img_dir_path, img_bucket_name
     print("\n{} done in {} seconds".format(title, time_elapsed))
 
 
+# TODO make sure you have removed TOTAL_UNIQUE_COUNT and TOTAL_WORD_COUNT before you write these in the first place (why do you even need?)
+# NOTE it is assumed that the dictionaries will not have overlapping titles, which they shouldn't so long as you check for this each time 
+# you add new urls in link_scrape.py (you have for the ~9200 collected on 1/29)
+# desc.: if you have a previous master dict json, and you scrape some new data and save that master dict somewhere else, this
+#        will update the previous master dict with the new master dict data and then write to out_master_json_path
+#        TODO now take the new master dict and update the db (need a function to update if exists and add if doesn't)
+def update_master_json(previous_master_json_path, new_master_json_path, out_master_json_path):
+    prev_dict = load_dict_from_json(previous_master_json_path)
+    new_dict = load_dict_from_json(new_master_json_path)
+
+    for word_key, title_freq_dict in new_dict.items():
+        try:
+            # existing words dict updates with the new {title: 0.1} 
+            prev_dict[word_key].update(title_freq_dict)
+        except KeyError:
+            # if the word in the new dict doesn't exist, add it to the previous and put its dict in 
+            prev_dict[word_key] = title_freq_dict
+
+    write_dict_to_json(prev_dict, out_master_json_path)
+
+
 def main():
     # load and batch urls TODO get scrape for the links file
     urls = ["https://www.goodreads.com/book/show/52578297-the-midnight-library?from_choice=true"]

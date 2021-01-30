@@ -1,0 +1,35 @@
+DONE
+== LINK SCRAPER ==
+- bring over link scraper (and pick a decent distribution of base links)
+- all links -> base_urls.csv
+	- each line: base_url (first page), num pages to take
+	- ex.: grurl.com,10
+- what base urls?
+	- start here (1930s-40s first): https://www.goodreads.com/list/show/6.Best_Books_of_the_20th_Century
+	- top N rated books from each decade
+	- biographies/memoirs: https://www.goodreads.com/list/show/281.Best_Memoir_Biography_Autobiography?page=1
+	- nonfic (no bios): https://www.goodreads.com/list/show/134.Best_Non_Fiction_no_biographies_
+	- "best books ever" (going to take 2000 from here): https://www.goodreads.com/list/show/1.Best_Books_Ever?page=1
+	- check for duplicates
+
+== SCRAPE/AWS DATA ==
+- DISCOVERY: you sign up for aws affiliate tag, then link to search with this tag, you'll have to gen these and update db after the app is running (you have to have a thing setup in order to sign up for amazon thing) 
+- clean up scrape from v5
+	- do you need everything in metadata that's there now?
+	- more progress reports, error handling, need it to be very easy to just pick up where the script left off (if it crashes)
+	- after each batch of urls scraped, write dictionary to json and load in again for the next batch. This is slower (probably not a lot) but in case something goes wrong, you'll have the dictionary saved (should only save after a complete successful batch) along with the progress so you can pick up right where you left off
+- add in function to load existing dictionary
+- add in function to update the existing database stuff (get new data -> build new dictionary -> compare with previous dictionary -> update words that already exist with new title: freq_prop, add new words like the init scrape)
+- add in function to update metadata db
+
+== APP == 
+- error handling
+- nginx, rate-limiting, can I use redis?
+- nice ui design
+- domain, ssl stuff
+- adsense/analytics
+- deploy on linode/digital ocean (will the latency of third part server to aws db/s3 be that big of a deal? if so, ec2 is supposedly faster because of physical location)
+
+== MARKET ==
+- identify target online communities -> develop message for each platform and cold call convincingly -> win
+

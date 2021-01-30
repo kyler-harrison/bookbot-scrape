@@ -1,4 +1,6 @@
 import re
+import json
+import nltk
 from my_fake_useragent import UserAgent
 
 
@@ -71,6 +73,18 @@ def review_breakdown(text):
     return [valid_chars(sentence).strip() for sentence in sentences_ls]
 
 
+# desc.: given py dict and a json path, dump it
+def write_dict_to_json(py_dict, dict_out_path):
+    with open(dict_out_path, "w") as f:
+        json.dump(py_dict, f)
+
+
+# desc.: given json path, return py dictionary of the file
+def load_dict_from_json(path):
+    with open(path, "r") as f:
+        return json.load(f)
+
+
 # desc.: upload file to s3 bucket
 # input: s3_resource, initialized boto3 thing
 #        file_path, local path to the file to upload
@@ -104,3 +118,5 @@ def combine_csv_files(files_ls, out_path, header, remove_files=False):
     if remove_files:
         for file_path in files_ls:
             os.remove(file_path)
+
+

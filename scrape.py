@@ -7,6 +7,7 @@ import traceback
 import boto3
 import enchant
 import json
+import datetime
 from multiprocessing import Process
 from multiprocessing import Manager
 from bs4 import BeautifulSoup as bs
@@ -338,7 +339,7 @@ def book_scrape(url, metadata_dict, progress_dict, img_dir_path, img_bucket_name
                 aws_img_ref = f"https://{img_bucket_name}.s3.amazonaws.com/{title_img_ext}"
             os.remove(img_path)  # rm the local image if all this goes right 
         else:
-            # TODO upload default image and name it this (hopefully there aren't any books with this title - is joke)
+            # default image in S3
             print(f"no image for {title}, using default img ref\n")
             aws_img_ref = f"https://{img_bucket_name}.s3.amazonaws.com/defaultNoImgAvailable"
 
@@ -379,17 +380,23 @@ def book_scrape(url, metadata_dict, progress_dict, img_dir_path, img_bucket_name
     except:
         # NOTE if data is uploaded to aws, and then for some reason that title ends up not being valid, it's no big deal,
         # because the search relies on what is in the master dict, and the words of every title only make it into the master
-        # dict this function runs successfully
+        # dict if this function runs successfully
         message = "MYSTERIOUS UNHANDLED ERROR OCCURRED"
         print(f"{message} on {url}\n")
         progress_dict[url] = message
 
 
 def main():
-    main_start = time.time()
+    main_start = time.time()  # start time for this script
+    date_now = datetime.datetime.now().strftime("%m_%d_%Y")  # get current date for saving files
 
-    # load and batch urls TODO get scrape for the links file
-    urls = ["https://www.goodreads.com/book/show/52578297-the-midnight-library?from_choice=true"]
+    # TODO should only need to change this name for each run
+    url_path_base_name = "initial_100_test_set0"
+
+    # load and batch urls 
+    url_base_path = "data/urls/to_collect/"
+    url_path = f"{url_base_path}{url_path_base_name}.txt"  
+    urls = load_urls(url_path)
     batch_size = 10
     batched_urls = batch_urls(batch_size, urls)
 
@@ -405,9 +412,15 @@ def main():
     metadata_mode = "a"
     progress_path = "data/metadata/progress.csv"
     progress_mode = "a"
-    master_dict_path = "data/master_dict/master_dict.json"
+
+    # dict paths
+    master_dict_path = f"data/master_dict/{date_now}_{url_path_base_name}.json"
     master_dict_mode = "w"  # will load in the previous dict, overwrite it with new stuff, and repeat for each batch
     valid_base_dir = "data/indiv_dicts"  # valid word jsons
+
+    # url progress path should be the file that contains all urls that are ever scraped
+    url_progress_path = "data/urls/collected/all.csv"
+    url_progress_mode = "a"
 
     # init shared dictionary to hold the all words from everything
     master_manager = Manager()
@@ -416,12 +429,15 @@ def main():
     # go one batch (determined above) at a time
     num_batches = len(batched_urls)
     for i, url_batch in enumerate(batched_urls):
+        print("==================================================")
+        batch_start = time.time()
+
         # load in the saved json of the master dict if it's been written 
         # NOTE if you're updating (i.e. a new scrape when data already exists), just load in previous master dict from the start
         if i != 0:
             master_py_dict = load_dict_from_json(master_dict_path)
             master_manager = Manager()
-            master_dict = master_manager.dict()
+            master_dict = master_manager.dict(master_py_dict)
 
         # special process manager dictionaries for this batch
         metadata_manager = Manager()
@@ -453,16 +469,23 @@ def main():
         write_metadata(metadata_dict, metadata_path, metadata_mode)
 
         # write progress (all titles should be here, error messages for failures)
-        main_elapsed = time.time() - main_start
-        # TODO change this message
-        progress_dict["MAIN TIME (S)"] = str(main_elapsed)
         write_progress(progress_dict, progress_path, progress_mode)
-        print(f"{main_elapsed} seconds for batch {i + 1} of {num_batches}")
     
         # write the master dict from this batch (will load back in at start of loop, and then write over again)
         # doing just in case something goes wrong -> based on progress should be able to see which batch left off on
         master_dict = dict(master_dict)  # make the mp dict into a nromal python dictionary
         write_dict_to_json(master_dict, master_dict_path)
+        
+        # write these urls as done (NOTE not removing any files from to_collect, just adding urls to all.csv)
+        with open(url_progress_path, url_progress_mode) as url_f:
+            for done_url in url_batch:
+                url_f.write(f"{done_url},{date_now}\n")
+
+        batch_elapsed = time.time() - batch_start
+        print(f"{batch_elapsed} seconds for batch {i + 1} of {num_batches}\n==================================================\n")
+
+    total_elapsed = time.time() - main_start
+    print(f"total time: {total_elapsed} seconds")
 
 
 if __name__ == "__main__":

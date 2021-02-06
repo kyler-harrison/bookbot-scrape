@@ -52,7 +52,7 @@ def write_return_dict(special_return_dict, out_path, out_mode):
             f.write(f"{link}\n")
 
 
-def main():
+def main_url_scrape():
     start = time.time()
 
     # load base urls
@@ -95,7 +95,36 @@ def main():
     print(f"{len(batched_urls)} batches of {batch_size} scraped in {elapsed} seconds")
 
 
+# desc.: given an input path, a list of output paths and their corresponding lengths -> split the input file into them (NOTE check counts)
+# a large last count will stop at the last index if it doesn't exist
+def url_file_split(input_path, output_paths, output_counts):
+    with open(input_path, "r") as in_file:
+        urls = [url[:-1] for url in in_file.readlines()]
+    
+    start_idx = 0
+    batched_urls = []
+    for count in output_counts:
+        count += start_idx
+        sub_ls = [url for url in urls[start_idx: count]]
+        batched_urls.append(sub_ls)
+        start_idx = count
+
+    for i, output_path in enumerate(output_paths):
+        with open(output_path, "w") as out_file:
+            for line in batched_urls[i]:
+                out_file.write(line + "\n")
+
+
+def main_split_urls():
+    input_path = "data/urls/not_sorted_urls/title_urls_set0.txt"
+    output_base = "data/urls/to_collect_urls/"
+    output_paths = ["initial_100_test_set0.txt", "second_100_test_set0.txt", "feb_3_4500_pt1_set0.txt", "feb_3_4500_pt2_set0.txt"]
+    output_paths = [output_base + path for path in output_paths]
+    output_counts = [100, 100, 4500, 1000000]  # NOTE the last one will just take whatever is remaining (which is ~4500 urls)
+    url_file_split(input_path, output_paths, output_counts)
+
+
 if __name__ == "__main__":
-    main()
+    main_split_urls()
 
 

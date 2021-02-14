@@ -390,8 +390,8 @@ def main():
     main_start = time.time()  # start time for this script
     date_now = datetime.datetime.now().strftime("%m_%d_%Y")  # get current date for saving files
 
-    # TODO should only need to change this name for each run
-    url_path_base_name = "initial_100_test_set0"
+    # TODO should only need to change this name for each run (no file ext, just the name)
+    url_path_base_name = "02_06_2021_big_pt1_set0_rem"
 
     # load and batch urls 
     url_base_path = "data/urls/to_collect/"
@@ -434,6 +434,7 @@ def main():
 
         # load in the saved json of the master dict if it's been written 
         # NOTE if you're updating (i.e. a new scrape when data already exists), just load in previous master dict from the start
+        # NOTE or just create a separate master json for this data and then merge the two with fun in update.py (what I'm actually doing)
         if i != 0:
             master_py_dict = load_dict_from_json(master_dict_path)
             master_manager = Manager()
@@ -465,16 +466,16 @@ def main():
                 update_master_dict(path, master_dict, remove=True)  
         master_dict = master_manager.dict(master_dict)  # again with the efficiency
 
+        # write the master dict from this batch (will load back in at start of loop, and then write over again)
+        # doing just in case something goes wrong -> based on progress should be able to see which batch left off on
+        master_dict = dict(master_dict)  # make the mp dict into a normal python dictionary
+        write_dict_to_json(master_dict, master_dict_path)
+
         # write metadata (only successful titles should be here)
         write_metadata(metadata_dict, metadata_path, metadata_mode)
 
         # write progress (all titles should be here, error messages for failures)
         write_progress(progress_dict, progress_path, progress_mode)
-    
-        # write the master dict from this batch (will load back in at start of loop, and then write over again)
-        # doing just in case something goes wrong -> based on progress should be able to see which batch left off on
-        master_dict = dict(master_dict)  # make the mp dict into a nromal python dictionary
-        write_dict_to_json(master_dict, master_dict_path)
         
         # write these urls as done (NOTE not removing any files from to_collect, just adding urls to all.csv)
         with open(url_progress_path, url_progress_mode) as url_f:

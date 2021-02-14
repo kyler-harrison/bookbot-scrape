@@ -1,0 +1,26 @@
+AS OF 2/14/2021 1:45 pm
+
+# TO MERGE
+
+## WORDS
+	master_dicts/02_13_2021_set0_0_100.json
+	master_dicts/02_14_2021_set0_100_2100.json
+
+## TITLE METADATA
+	title_data/02_13_2021_set0_0_100.json
+	title_data/02_14_2021_set0_100_2100.json
+
+
+# MERGED BUT NOT JSON ARRAY 
+
+
+# TO JSON ARRAY FILE 
+
+
+# DONE
+## WORDS
+	(2/14/2021 1:45 pm): master_dicts/02_13_2021_set0_0_100.json + master_dicts/02_14_2021_set0_100_2100.json -> master_dict_json_arrays/02_14_2021_set0_0_2100.json
+
+## TITLE METADATA
+	(2/14/2021 1:45 pm): title_data/02_13_2021_set0_0_100.json -> title_data/02_14_2021_set0_100_2100.json -> title_data_json_arrays/02_14_2021_set0_0_2100.json
+

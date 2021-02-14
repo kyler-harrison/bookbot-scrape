@@ -10,21 +10,31 @@ from utils import *
 # you add new urls in link_scrape.py (you have for the ~9200 collected on 1/29)
 # desc.: if you have a previous master dict json, and you scrape some new data and save that master dict somewhere else, this
 #        will update the previous master dict with the new master dict data and then write to out_master_json_path
-def update_local_master_json(previous_master_json_path, new_master_json_path, out_master_json_path):
+#        smaller=0 means previous json is smaller than new, smaller=1 means opposite (efficiency)
+def update_local_master_json(previous_master_json_path, new_master_json_path, out_master_json_path, smaller=1):
     start_time = time.time()
 
     prev_dict = load_dict_from_json(previous_master_json_path)
     new_dict = load_dict_from_json(new_master_json_path)
 
-    for word_key, title_freq_dict in new_dict.items():
-        try:
-            # existing words dict updates with the new {title: 0.1} 
-            prev_dict[word_key].update(title_freq_dict)
-        except KeyError:
-            # if the word in the new dict doesn't exist, add it to the previous and put its dict in 
-            prev_dict[word_key] = title_freq_dict
-
-    write_dict_to_json(prev_dict, out_master_json_path)
+    if smaller == 1:
+        for word_key, title_freq_dict in new_dict.items():
+            try:
+                # existing words dict updates with the new {title: 0.1} 
+                prev_dict[word_key].update(title_freq_dict)
+            except KeyError:
+                # if the word in the new dict doesn't exist, add it to the previous and put its dict in 
+                prev_dict[word_key] = title_freq_dict
+        write_dict_to_json(prev_dict, out_master_json_path)
+    else:
+        for word_key, title_freq_dict in prev_dict.items():
+            try:
+                # existing words dict updates with the new {title: 0.1} 
+                new_dict[word_key].update(title_freq_dict)
+            except KeyError:
+                # if the word in the new dict doesn't exist, add it to the previous and put its dict in 
+                new_dict[word_key] = title_freq_dict
+        write_dict_to_json(new_dict, out_master_json_path)
 
     elapsed_time = time.time() - start_time
     print(f"{elapsed_time} seconds to update local master")
@@ -217,14 +227,14 @@ def dontrun():
 
 def merger_main():
     # TODO change these three vars to merge old/new to current master json
-    previous_master_json_path = ""
-    new_master_json_path = ""
-    out_master_json_path = ""
+    previous_master_json_path = "data/master_dict/02_07_2021_3419_titles.json"
+    new_master_json_path = "data/master_dict/02_06_2021_big_pt1_set0_rem.json"
+    out_master_json_path = "data/master_dict/02_07_2021_3503_titles.json"
 
-    update_local_master_json(previous_master_json_path, new_master_json_path, out_master_json_path)
+    update_local_master_json(previous_master_json_path, new_master_json_path, out_master_json_path, smaller=1)
 
 
 if __name__ == "__main__":
-    main()
+    merger_main()
 
 

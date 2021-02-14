@@ -114,10 +114,10 @@ def review_scrape(soup, valid_dict, invalid_dict):
         return False
 
 
-def book_scrape(url, metadata_dict, progress_dict, img_dir_path, img_bucket_name, db_client, db_table_name, s3_resource, valid_base_dir, master_dict):
+# the main goodreads scrape
+def book_scrape(url, metadata_dict, progress_dict, img_dir_path, img_bucket_name, s3_resource, valid_base_dir, master_dict, title_data_dict, exception_dict):
     try:
         start_time = time.time()
-        db_dict = {}  # dict for the database entry, written to aws if scrape successful 
         this_valid = {}  # valid words for this title, ex. {"word": 27}
         this_invalid = {}  # invalid words for this title, ex. {"asdfsdhewq": 1}
         metadata_str = ""  # string to add info for the mp metadata_dict, added to metadata dict as title_key: metadata_str if scrape successful
@@ -140,8 +140,6 @@ def book_scrape(url, metadata_dict, progress_dict, img_dir_path, img_bucket_name
             time_elapsed = time.time() - start_time
             progress_dict[url] = message
             return
-        db_dict["title"] = {"S": title}
-        db_dict.update({"unfiltered_title": {"S": og_title}})
         metadata_str += title + ","
         word_breaker(title, this_valid, this_invalid)  
         this_valid["TITLE_KEY"] = title  # key needed for master dict update later
@@ -160,7 +158,6 @@ def book_scrape(url, metadata_dict, progress_dict, img_dir_path, img_bucket_name
                 time_elapsed = time.time() - start_time
                 progress_dict[url] = message
                 return
-        db_dict.update({"authors": {"SS": authors_text}})
         metadata_str += "&".join(authors_text) + ","
         for author_text in authors_text: word_breaker(author_text, this_valid, this_invalid)
         
@@ -173,7 +170,6 @@ def book_scrape(url, metadata_dict, progress_dict, img_dir_path, img_bucket_name
             non_fic = True
         else:
             non_fic = False
-        db_dict.update({"genres": {"SS": genres}})
         metadata_str += str(non_fic) + ","
         metadata_str += "&".join(genres) + ","
         for genre in genres: word_breaker(genre, this_valid, this_invalid)
@@ -187,7 +183,6 @@ def book_scrape(url, metadata_dict, progress_dict, img_dir_path, img_bucket_name
         else:
             description_sub = description_subs[0]
         book_description = description_sub.text
-        db_dict.update({"description": {"S": book_description}})
         desc_sentences = breakdown_sentences(book_description) 
         valid_desc_sentences = [valid_chars(desc_sent) for desc_sent in desc_sentences]
         metadata_str += " ".join(valid_desc_sentences) + ","  # TODO is this neccessary anymore? anything else potentially irrelevant in metadata?
@@ -343,16 +338,8 @@ def book_scrape(url, metadata_dict, progress_dict, img_dir_path, img_bucket_name
             print(f"no image for {title}, using default img ref\n")
             aws_img_ref = f"https://{img_bucket_name}.s3.amazonaws.com/defaultNoImgAvailable"
 
-        # write the db dict to the dyanmo db table
-        db_dict.update({"cover_img_bucket_name": {"S": img_bucket_name}})
-        db_dict.update({"cover_img_ref": {"S": aws_img_ref}})
-
-        try:    
-            db_client.put_item(TableName=db_table_name, Item=db_dict)
-        except:
-            message = "ERROR: failed to put data into dynamo"
-            progress_dict[title] = message
-            return 
+        # title data now complete for this title  
+        title_data_dict[title] = {"unfiltered_title": og_title, "authors": authors_text, "genres": genres, "description": book_description, "cover_img_ref": aws_img_ref}
 
         # add any invalid words that are potnetially valid
         valid_thresh = 5
@@ -384,6 +371,7 @@ def book_scrape(url, metadata_dict, progress_dict, img_dir_path, img_bucket_name
         message = "MYSTERIOUS UNHANDLED ERROR OCCURRED"
         print(f"{message} on {url}\n")
         progress_dict[url] = message
+        exception_dict[url] = traceback.format_exc()
 
 
 def main():
@@ -391,7 +379,7 @@ def main():
     date_now = datetime.datetime.now().strftime("%m_%d_%Y")  # get current date for saving files
 
     # TODO should only need to change this name for each run (no file ext, just the name)
-    url_path_base_name = "02_06_2021_big_pt1_set0_rem"
+    url_path_base_name = "set0_0_100"
 
     # load and batch urls 
     url_base_path = "data/urls/to_collect/"
@@ -400,9 +388,12 @@ def main():
     batch_size = 10
     batched_urls = batch_urls(batch_size, urls)
 
+    # file for mysterious unhandled errors
+    exception_path = f"data/exceptions/{date_now}_{url_path_base_name}.json"
+
     # aws vars (on this machine credentials should be all setup, TODO aws cli config on cloud machine)
-    db_client = boto3.client("dynamodb", region_name="us-east-1")
-    db_table_name = "bookOracleData"
+    #db_client = boto3.client("dynamodb", region_name="us-east-1")
+    #db_table_name = "bookOracleData"
     s3_resource = boto3.resource("s3")
     img_dir_path = "data/cover_images"
     img_bucket_name = "bookoraclecoverimages"
@@ -414,9 +405,9 @@ def main():
     progress_mode = "a"
 
     # dict paths
-    master_dict_path = f"data/master_dict/{date_now}_{url_path_base_name}.json"
-    master_dict_mode = "w"  # will load in the previous dict, overwrite it with new stuff, and repeat for each batch
+    master_dict_path = f"data/master_dicts/{date_now}_{url_path_base_name}.json"
     valid_base_dir = "data/indiv_dicts"  # valid word jsons
+    title_data_dict_path = f"data/title_data/{date_now}_{url_path_base_name}.json"
 
     # url progress path should be the file that contains all urls that are ever scraped
     url_progress_path = "data/urls/collected/all.csv"
@@ -425,6 +416,9 @@ def main():
     # init shared dictionary to hold the all words from everything
     master_manager = Manager()
     master_dict = master_manager.dict()
+    # init shared dictionary for title metadata
+    title_data_manager = Manager()
+    title_data_dict = title_data_manager.dict()
 
     # go one batch (determined above) at a time
     num_batches = len(batched_urls)
@@ -439,23 +433,37 @@ def main():
             master_py_dict = load_dict_from_json(master_dict_path)
             master_manager = Manager()
             master_dict = master_manager.dict(master_py_dict)
+            title_data_py_dict = load_dict_from_json(title_data_dict_path)
+            title_data_manager = Manager()
+            title_data_dict = title_data_manager.dict(title_data_py_dict)
 
         # special process manager dictionaries for this batch
         metadata_manager = Manager()
         progress_manager = Manager()
         metadata_dict = metadata_manager.dict()
         progress_dict = progress_manager.dict()
+        # init shared dictionary for unhandled exceptions
+        exception_manager = Manager()
+        exception_dict = exception_manager.dict()
         
         # multi-processing for all the urls
         processes = []
         for url in url_batch:
-            process = Process(target=book_scrape, args=(url, metadata_dict, progress_dict, img_dir_path, img_bucket_name, db_client, db_table_name, s3_resource, valid_base_dir, master_dict))
+            process = Process(target=book_scrape, args=(url, metadata_dict, progress_dict, img_dir_path, img_bucket_name, s3_resource, valid_base_dir, master_dict, title_data_dict, exception_dict))
             processes.append(process)
             process.start()
         
         # back in sync
         for p in processes:
             p.join()
+
+        # write any exceptions
+        exception_dict = dict(exception_dict)
+        if len(exception_dict) > 0:
+            with open(exception_path, "a") as exception_file:
+                for exception_url, exception_trace in exception_dict.items():
+                    exception_file.write(exception_url)
+                    exception_file.write(exception_trace + "\n")
 
         # update the master dict with the json dicts just collected
         master_dict = dict(master_dict)
@@ -470,6 +478,10 @@ def main():
         # doing just in case something goes wrong -> based on progress should be able to see which batch left off on
         master_dict = dict(master_dict)  # make the mp dict into a normal python dictionary
         write_dict_to_json(master_dict, master_dict_path)
+
+        # write the title data for this batch (loads back into shared dict at start of loop and then overwritten again)
+        title_data_dict = dict(title_data_dict)
+        write_dict_to_json(title_data_dict, title_data_dict_path)
 
         # write metadata (only successful titles should be here)
         write_metadata(metadata_dict, metadata_path, metadata_mode)

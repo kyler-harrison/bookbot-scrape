@@ -85,21 +85,6 @@ def load_dict_from_json(path):
         return json.load(f)
 
 
-# need form of [{word_key: word, title_vals: {title: n, ..., titleN: n}, {...}, {word_keyN: wordN, title_valsN: {title: n, ..., titleN: n}}}] for mongo
-def word_json_to_json_arr(master_path, out_path):
-    master_dict = load_dict_from_json(master_path)
-    json_arr = [{"word_key": word_key, "title_vals": word_vals} for word_key, word_vals in master_dict.items()]
-    write_dict_to_json(json_arr, out_path)
-
-
-# scrape writes json of {title: title_data} where title_data is an object
-# need form of [{title_key: title, metadata: {...}, ..., {...}}] for mongo
-def title_data_json_to_json_arr(title_data_path, out_path):
-    title_data_dict = load_dict_from_json(title_data_path)
-    json_arr = [{"title_key": title, "title_data": title_data} for title, title_data in title_data_dict.items()]
-    write_dict_to_json(json_arr, out_path)
-
-
 # desc.: upload file to s3 bucket
 # input: s3_resource, initialized boto3 thing
 #        file_path, local path to the file to upload

@@ -85,10 +85,17 @@ def load_dict_from_json(path):
         return json.load(f)
 
 
-# need form of [{word: {title: n, ..., titleN: n}, {...}, {wordN: {title: n, ..., titleN: n}}}]
-def json_to_json_arr(master_path, out_path):
+# need form of [{word_key: word, title_vals: {title: n, ..., titleN: n}, {...}, {word_keyN: wordN, title_valsN: {title: n, ..., titleN: n}}}] for mongo
+def word_json_to_json_arr(master_path, out_path):
     master_dict = load_dict_from_json(master_path)
     json_arr = [{"word_key": word_key, "title_vals": word_vals} for word_key, word_vals in master_dict.items()]
+    write_dict_to_json(json_arr, out_path)
+
+
+# need form of [{title_key: title, metadata: {...}, ..., {...}}] for mongo
+def metadata_json_to_json_arr(metadata_path, out_path):
+    metadata_dict = load_dict_from_json(metadata_path)
+    json_arr = [{"title_key": title, "metadata": metadata} for title_key, metadata in metadata_dict.items()]
     write_dict_to_json(json_arr, out_path)
 
 

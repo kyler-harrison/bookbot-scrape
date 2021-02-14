@@ -1,0 +1,6 @@
+- 2000 titles split into 10 per batch takes ~4.45 hours
+- 1000 titles split into 10 per batch batch takes ~90 minutes
+- after first 3219 scrape (~21 hrs, 33 min), ~1.7e6 unique words, ~50 titles per word on average, search is no big deal after loaded, 371 mb json
+- merger of 100 titles master word json with 2000 titles master word json complete in ~39 seconds
+  ^ if plugged in it goes quicker
+- json to json array of 2100 titles master word data takes ~13 seconds

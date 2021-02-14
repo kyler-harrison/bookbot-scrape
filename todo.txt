@@ -28,7 +28,7 @@ DONE
 - nice ui design
 - domain, ssl stuff
 - adsense/analytics
-- deploy on linode/digital ocean (will the latency of third part server to aws db/s3 be that big of a deal? if so, ec2 is supposedly faster because of physical location)
+- deploy on linode/digital ocean (will the latency of third party server to aws db/s3 be that big of a deal? if so, ec2 is supposedly faster because of physical location)
 
 == MARKET ==
 - identify target online communities -> develop message for each platform and cold call convincingly -> win

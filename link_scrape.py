@@ -136,11 +136,12 @@ def remaining_urls(all_urls_path, url_path, out_path):
 
 
 def main_split_urls():
-    input_path = "data/urls/not_sorted_urls/title_urls_set0.txt"
-    output_base = "data/urls/to_collect_urls/"
-    output_paths = ["initial_100_test_set0.txt", "second_100_test_set0.txt", "feb_3_4500_pt1_set0.txt", "feb_3_4500_pt2_set0.txt"]
+    input_path = "data/urls/not_sorted/title_urls_set0.txt"
+    output_base = "data/urls/to_collect/"
+    # NOTE will put line 1 - 100 in file, then 101 - 200, then 201 - 300, and so forth - I checked sorta
+    output_paths = ["set0_0_100.txt", "set0_100_2100.txt", "set0_2100_4100.txt", "set0_4100_6100.txt", "set0_6100_8100.txt", "set0_8100_end.txt"]
     output_paths = [output_base + path for path in output_paths]
-    output_counts = [100, 100, 4500, 1000000]  # NOTE the last one will just take whatever is remaining (which is ~4500 urls)
+    output_counts = [100, 2000, 2000, 2000, 2000, 2000]  # NOTE the last one will just take however many are remaining 
     url_file_split(input_path, output_paths, output_counts)
 
 

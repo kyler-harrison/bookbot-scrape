@@ -96,7 +96,7 @@ def word_json_to_json_arr(master_path, out_path):
 # need form of [{title_key: title, metadata: {...}, ..., {...}}] for mongo
 def title_data_json_to_json_arr(title_data_path, out_path):
     title_data_dict = load_dict_from_json(title_data_path)
-    json_arr = [{"title_key": title, "title_data": title_data} for title_key, title_data in title_data_dict.items()]
+    json_arr = [{"title_key": title, "title_data": title_data} for title, title_data in title_data_dict.items()]
     write_dict_to_json(json_arr, out_path)
 
 

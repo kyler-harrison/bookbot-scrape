@@ -115,6 +115,26 @@ def url_file_split(input_path, output_paths, output_counts):
                 out_file.write(line + "\n")
 
 
+# desc.: if you didn't finish scraping a file and don't know where the urls stopped, reference the collected urls file with the urls to scrape file
+#        writes to out path
+def remaining_urls(all_urls_path, url_path, out_path):
+    with open(all_urls_path, "r") as all_f:
+        # it's a two column csv, so split and grab link
+        collected_urls = [line.split(",")[0] for line in all_f.readlines()]
+
+    remaining = []
+    with open(url_path, "r") as current_f:
+        for current_line in current_f.readlines():
+            current_line = current_line[:-1]  # rm newline
+            if current_line not in collected_urls:
+                remaining.append(current_line)
+
+    print(f"{len(remaining)} remaining to collect")
+    with open(out_path, "w") as out_f:
+        for rem in remaining:
+            out_f.write(rem + "\n")
+
+
 def main_split_urls():
     input_path = "data/urls/not_sorted_urls/title_urls_set0.txt"
     output_base = "data/urls/to_collect_urls/"

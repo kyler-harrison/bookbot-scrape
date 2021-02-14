@@ -92,10 +92,11 @@ def word_json_to_json_arr(master_path, out_path):
     write_dict_to_json(json_arr, out_path)
 
 
+# scrape writes json of {title: title_data} where title_data is an object
 # need form of [{title_key: title, metadata: {...}, ..., {...}}] for mongo
-def metadata_json_to_json_arr(metadata_path, out_path):
-    metadata_dict = load_dict_from_json(metadata_path)
-    json_arr = [{"title_key": title, "metadata": metadata} for title_key, metadata in metadata_dict.items()]
+def title_data_json_to_json_arr(title_data_path, out_path):
+    title_data_dict = load_dict_from_json(title_data_path)
+    json_arr = [{"title_key": title, "title_data": title_data} for title_key, title_data in title_data_dict.items()]
     write_dict_to_json(json_arr, out_path)
 
 

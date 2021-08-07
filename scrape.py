@@ -379,7 +379,7 @@ def main():
     date_now = datetime.datetime.now().strftime("%m_%d_%Y")  # get current date for saving files
 
     # TODO should only need to change this name for each run (no file ext, just the name)
-    url_path_base_name = "set0_0_100"
+    url_path_base_name = "set0_8100_end"
 
     # load and batch urls 
     url_base_path = "data/urls/to_collect/"

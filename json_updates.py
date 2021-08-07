@@ -64,30 +64,34 @@ def title_data_json_to_json_arr(title_data_path, out_path):
 
 # update word data json
 def word_json_main():
-    """
-    previous_master = "data/master_dicts/02_13_2021_set0_0_100.json"
-    new_master = "data/master_dicts/02_14_2021_set0_100_2100.json"
-    merge_jsons(previous_master, new_master, out_master)
-    """
-    out_master = "data/master_dicts/02_14_2021_set0_0_2100.json"
-    out_json_arr = "data/master_dict_json_arrays/02_14_2021_set0_0_2100.json"
+    # merge
+    previous_master = "data/master_dicts/02_17_2021_set0_0_8100.json"
+    new_master = "data/master_dicts/03_13_2021_set0_8100_end.json"
+    out_master = "data/master_dicts/03_13_2021_set0_0_end.json"
+    
+    merge_jsons(previous_master, new_master, out_master, smaller=1)
+
+    # to json array
+    out_json_arr = "data/master_dict_json_arrays/03_13_2021_set0_0_end.json"
     word_json_to_json_arr(out_master, out_json_arr)
 
 
 # update title metadata json
 def title_json_main():
-    """
-    previous_title = "data/title_data/02_13_2021_set0_0_100.json"
-    new_title = "data/title_data/02_14_2021_set0_100_2100.json"
-    merge_jsons(previous_title, new_title, out_title)
-    """
-    out_title = "data/title_data/02_14_2021_set0_0_2100.json"
-    out_json_arr = "data/title_data_json_arrays/02_14_2021_set0_0_2100.json"
+    # merge
+    previous_title = "data/title_data/02_17_2021_set0_0_8100.json"
+    new_title = "data/title_data/03_13_2021_set0_8100_end.json"
+    out_title = "data/title_data/03_13_2021_set0_0_end.json"
+
+    merge_jsons(previous_title, new_title, out_title, smaller=1)
+
+    # to json array
+    out_json_arr = "data/title_data_json_arrays/03_13_2021_set0_0_end.json"
     title_data_json_to_json_arr(out_title, out_json_arr)
 
 
 if __name__ == "__main__":
-    word_json_main()
+    #word_json_main()
     title_json_main()
 
 

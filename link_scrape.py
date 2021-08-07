@@ -136,6 +136,7 @@ def remaining_urls(all_urls_path, url_path, out_path):
 
 
 def main_split_urls():
+    """
     input_path = "data/urls/not_sorted/title_urls_set0.txt"
     output_base = "data/urls/to_collect/"
     # NOTE will put line 1 - 100 in file, then 101 - 200, then 201 - 300, and so forth - I checked sorta
@@ -143,6 +144,12 @@ def main_split_urls():
     output_paths = [output_base + path for path in output_paths]
     output_counts = [100, 2000, 2000, 2000, 2000, 2000]  # NOTE the last one will just take however many are remaining 
     url_file_split(input_path, output_paths, output_counts)
+    """
+
+    all_urls_path = "data/urls/collected/all.csv"
+    url_path = "data/urls/to_collect/set0_6100_8100.txt"
+    out_path = "data/urls/to_collect/finish_set0_6100_8100.txt"
+    remaining_urls(all_urls_path, url_path, out_path)
 
 
 if __name__ == "__main__":

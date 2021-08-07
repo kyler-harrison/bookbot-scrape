@@ -4,3 +4,34 @@
 - merger of 100 titles master word json with 2000 titles master word json complete in ~39 seconds
   ^ if plugged in it goes quicker
 - json to json array of 2100 titles master word data takes ~13 seconds
+- merger of 2000 titles master word json with 2000 titles master word json complete in ~23 seconds (plugged into power)
+- json to json array of 4100 titles master word data takes ~23 seconds
+- 0 to 2100 took ~4.5 hours
+- 2100 to 4100 took ~4.5 hours
+- 4100 to 6100 took ~7.4 hours (I'm guessing these were more popular titles - more words)
+- ~44 seconds to merge 0-4100 master word json and 4100-6100 master word json
+- ~140 ms to insert 2000 new titles to title metadata collection
+- attempted to update existing 2000 titles master word mongo collection with 2000 titles master word json, got a memory allocation error after
+  20 minutes of running. I have no idea how long it would have take to complete the entire update, and I don't know why I ran out of memory,
+	perhaps I need to read the file as a stream? but still wouldn't it have crashed earlier if the file was too much for RAM? read that node js
+	by default gets 512 mb of memory and you can set more. but considering the server I'm going to set up will only have 1 gb of RAM, that doesn't 
+	seem like the answer. perhaps just merge jsons on the server if scp'ing the big json takes too long, and then importing straight into mongo. 
+	json merges are quick and so is a mongo import, most time will be spent on sending the file(s) over. I guess to update once running, I can just
+	send over the new json (2000 titles max or whatever doesn't take an unreasonable amount of time to send over) and merge and import again since the
+	updates seem to be slow
+
+- merge of set0_0_6100 and set0_6100_8100 to make set0_0_8100:
+  words:
+		61.84687781333923 seconds to merge
+		81.09597539901733 seconds to convert to json array
+	titles:
+		0.18956398963928223 seconds to merge
+		0.17568612098693848 seconds to convert to json array
+
+- merge of set0_0_8100 and set0_8100_end to make set0_0_end (not plugged into power):
+	words:
+		195.90841817855835 seconds to merge
+		202.31274557113647 seconds to convert to json array
+	titles:
+		0.6590723991394043 seconds to merge
+		0.6144227981567383 seconds to convert to json array
